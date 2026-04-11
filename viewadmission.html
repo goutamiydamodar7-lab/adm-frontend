@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admissions</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-6">
+
+<h2 class="text-2xl font-bold mb-4">Admissions</h2>
+
+<table class="w-full bg-white shadow rounded">
+  <thead class="bg-gray-200">
+    <tr>
+      <th class="p-2">Name</th>
+      <th>Email</th>
+      <th>Course</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="list"></tbody>
+</table>
+
+<script>
+const token = localStorage.getItem("token");
+
+if (!token) {
+  alert("Login required");
+  location.href = "login.html";
+}
+
+async function load() {
+  const res = await fetch("http://localhost:5000/api/admissions", {
+    headers: {
+      Authorization: "Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  if (data.length === 0) {
+    list.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center p-4 text-gray-500">
+          No Data Found
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  data.forEach(a => {
+    list.innerHTML += `
+      <tr class="border-t">
+        <td class="p-2">${a.name}</td>
+        <td>${a.email}</td>
+        <td>${a.course}</td>
+        <td>
+          <span class="${
+            a.status === "Approved" ? "text-green-600" :
+            a.status === "Rejected" ? "text-red-600" :
+            "text-yellow-600"
+          } font-bold">
+            ${a.status}
+          </span>
+        </td>
+        <td class="space-x-2">
+          <button onclick="approve('${a._id}')"
+            class="bg-green-500 text-white px-2 py-1 rounded">
+            Approve
+          </button>
+
+          <button onclick="reject('${a._id}')"
+            class="bg-red-500 text-white px-2 py-1 rounded">
+            Reject
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+
+// ❌ Reject
+async function reject(id) {
+  console.log("Reject ID:", id);
+
+  const res = await fetch(`http://localhost:5000/api/admissions/reject/${id}`, {
+    method: "PUT",
+    headers: {
+      Authorization: "Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+  console.log("RESPONSE:", data);
+
+  load();
+}
+
+// ✅ Approve
+async function approve(id) {
+  await fetch(`http://localhost:5000/api/admissions/approve/${id}`, {
+    method: "PUT",
+    headers: {
+      Authorization: "Bearer " + token
+    }
+  });
+
+  load();
+}
+
+async function deleteAdmission(id) {
+  if (!confirm("Are you sure you want to delete?")) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/admissions/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    load(); // refresh list
+
+  } catch (err) {
+    console.log(err);
+    alert("Delete failed");
+  }
+}
+
+
+
+load();
+</script>
+
+</body>
+</html>

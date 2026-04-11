@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+<div class="bg-white p-6 rounded shadow w-80">
+  <h2 class="text-xl font-bold mb-4 text-center">Register</h2>
+
+  <form id="form" class="space-y-3">
+    <input class="w-full p-2 border rounded" id="name" placeholder="Name">
+    <input class="w-full p-2 border rounded" id="email" placeholder="Email">
+    <input class="w-full p-2 border rounded" id="password" type="password" placeholder="Password">
+    <button class="w-full bg-blue-500 text-white p-2 rounded">Register</button>
+  </form>
+
+  <p class="text-sm mt-3 text-center">
+    Already? <a href="login.html" class="text-blue-500">Login</a>
+  </p>
+
+  <p id="msg" class="text-center mt-2"></p>
+</div>
+
+<script>
+form.onsubmit = async (e)=>{
+  e.preventDefault();
+
+  const res = await fetch("http://localhost:5000/api/register", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      name:name.value,
+      email:email.value,
+      password:password.value
+    })
+  });
+
+  const data = await res.json();
+  msg.innerText = data.message || data.error;
+
+  if(res.ok){
+    setTimeout(()=>location.href="login.html",1000);
+  }
+}
+</script>
+
+</body>
+</html>
