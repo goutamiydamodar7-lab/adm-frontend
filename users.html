@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Users</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-700 to-purple-700 text-white flex">
+
+<!-- SIDEBAR -->
+<div class="w-64 p-6 bg-white/10 backdrop-blur-xl">
+  <h2 class="text-2xl font-bold mb-6">🎓 Admin</h2>
+
+  <a href="dashboard.html" class="block p-2 hover:bg-white/20 rounded">Dashboard</a>
+  <a href="users.html" class="block p-2 bg-white/20 rounded">Users</a>
+  <a href="reports.html" class="block p-2 hover:bg-white/20 rounded">Reports</a>
+  <a href="settings.html" class="block p-2 hover:bg-white/20 rounded">Settings</a>
+</div>
+
+<!-- MAIN -->
+<div class="flex-1 p-6">
+
+  <h1 class="text-2xl font-bold mb-4">Users</h1>
+
+  <div class="bg-white/10 p-4 rounded-xl">
+    <table class="w-full">
+      <thead class="bg-white/20">
+        <tr>
+          <th class="p-2 text-left">Name</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody id="users"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+lucide.createIcons();
+
+async function loadUsers(){
+  const res = await fetch("http://localhost:5000/api/users");
+  const data = await res.json();
+
+  users.innerHTML = "";
+
+  data.forEach(u=>{
+    users.innerHTML += `
+      <tr class="border-b border-white/20">
+        <td class="p-2">${u.name}</td>
+        <td>${u.email}</td>
+      </tr>
+    `;
+  });
+}
+
+loadUsers();
+</script>
+
+</body>
+</html>

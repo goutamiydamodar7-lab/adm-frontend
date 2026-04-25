@@ -1,60 +1,257 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Dashboard</title>
-
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="flex">
+<body class="bg-gradient-to-br from-blue-700 via-purple-700 to-pink-600 min-h-screen flex text-white">
 
-<!-- ✅ LOGIN PROTECTION -->
+<!-- SIDEBAR -->
+<div class="w-64 p-6 bg-white/10 backdrop-blur-xl border-r border-white/20 min-h-screen">
+
+  <h2 class="text-2xl font-bold mb-10">🎓 Admin Panel</h2>
+
+  <p class="text-sm text-gray-200 mb-3">MENU</p>
+
+  <ul class="space-y-3">
+
+    <li class="bg-white/20 p-3 rounded-lg flex items-center gap-3">
+      <i data-lucide="layout-dashboard"></i> Dashboard
+    </li>
+
+    <li>
+      <a href="admission.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/20">
+        <i data-lucide="plus-circle"></i> Add Admission
+      </a>
+    </li>
+
+    <li>
+      <a href="dashboard.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/20">
+        <i data-lucide="list"></i> View Admissions
+      </a>
+    </li>
+
+    <li>
+      <a href="users.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/20">
+        <i data-lucide="users"></i> Users
+      </a>
+    </li>
+
+    <li>
+      <a href="courses.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/20">
+        <i data-lucide="book-open"></i> Courses
+      </a>
+    </li>
+
+    <li>
+      <a href="reports.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/20">
+        <i data-lucide="bar-chart-3"></i> Reports
+      </a>
+    </li>
+
+    <li>
+      <a href="settings.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/20">
+        <i data-lucide="settings"></i> Settings
+      </a>
+    </li>
+
+    <li>
+      <a href="#" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/20">
+        <i data-lucide="help-circle"></i> Help
+      </a>
+    </li>
+
+    <li class="pt-5 border-t border-white/20">
+      <button onclick="logout()" class="w-full flex items-center gap-3 p-3 rounded-lg bg-red-500/70 hover:bg-red-600">
+        <i data-lucide="log-out"></i> Logout
+      </button>
+    </li>
+
+  </ul>
+</div>
+
+<!-- MAIN -->
+<div class="flex-1 p-6">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Dashboard</h1>
+    <span>Welcome 👋 Admin</span>
+  </div>
+
+  <!-- CARDS -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
+
+    <div class="glass">
+      <p>Total</p>
+      <h2 id="total" class="text-2xl font-bold">0</h2>
+    </div>
+
+    <div class="glass bg-green-500/30">
+      <p>Approved</p>
+      <h2 id="approved" class="text-2xl font-bold">0</h2>
+    </div>
+
+    <div class="glass bg-red-500/30">
+      <p>Rejected</p>
+      <h2 id="rejected" class="text-2xl font-bold">0</h2>
+    </div>
+
+    <div class="glass bg-yellow-400/30">
+      <p>Pending</p>
+      <h2 id="pending" class="text-2xl font-bold">0</h2>
+    </div>
+
+  </div>
+
+  <!-- TABLE -->
+  <div class="glass p-5">
+
+    <div class="flex justify-between mb-4">
+      <h2 class="text-lg font-bold">Admissions List</h2>
+      <input id="search" placeholder="Search..." 
+        class="bg-white/20 p-2 rounded outline-none placeholder-white">
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="bg-white/20">
+        <tr>
+          <th class="p-3 text-left">Name</th>
+          <th>Email</th>
+          <th>Course</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="list"></tbody>
+    </table>
+
+  </div>
+
+</div>
+
+<style>
+.glass {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(15px);
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+</style>
+
 <script>
+lucide.createIcons();
+
 const token = localStorage.getItem("token");
 
 if (!token) {
-  alert("Login required!");
-  window.location.href = "login.html";
+  alert("Login required");
+  location.href = "login.html";
 }
-</script>
 
-<!-- ✅ SIDEBAR -->
-<div id="sidebar"></div>
+let allData = [];
 
-<!-- ✅ MAIN CONTENT -->
+async function load() {
+  const res = await fetch("http://localhost:5000/api/admissions", {
+    headers: { Authorization: "Bearer " + token }
+  });
 
+  const data = await res.json();
+  allData = data;
 
-<!-- ✅ SIDEBAR SCRIPT -->
-<script>
-const sidebar = document.getElementById("sidebar");
+  render(data);
+}
 
-// admin sidebar
-sidebar.innerHTML = `
-  <div class="w-64 bg-gray-900 text-white min-h-screen p-5">
-    <h2 class="text-2xl font-bold mb-8 text-center">Admin Panel</h2>
+function render(data) {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
-    <ul class="space-y-4">
-      <li><a href="dashboard.html" class="block bg-gray-700 p-2 rounded">Dashboard</a></li>
-      <li><a href="admission.html" class="block hover:bg-gray-700 p-2 rounded">Add Admission</a></li>
-      <li><a href="viewadmission.html" class="block hover:bg-gray-700 p-2 rounded">View Admissions</a></li>
-      <li><a href="courses.html" class="block hover:bg-gray-700 p-2 rounded">Courses</a></li>
-      <li>
-        <button onclick="logout()" class="w-full text-left hover:bg-red-600 p-2 rounded">
-          Logout
-        </button>
-      </li>
-    </ul>
-  </div>
-  
-`;
+  let approved=0, rejected=0, pending=0;
 
-// logout
-function logout() {
+  data.forEach(a => {
+
+    if (a.status === "Approved") approved++;
+    else if (a.status === "Rejected") rejected++;
+    else pending++;
+
+    list.innerHTML += `
+      <tr class="border-b border-white/20 hover:bg-white/10">
+        <td class="p-3">${a.name}</td>
+        <td>${a.email}</td>
+        <td>${a.course}</td>
+
+        <td>
+          <span class="px-2 py-1 rounded ${
+            a.status==="Approved"?"bg-green-400/40":
+            a.status==="Rejected"?"bg-red-400/40":
+            "bg-yellow-300/40"
+          }">
+            ${a.status || "Pending"}
+          </span>
+        </td>
+
+        <td class="space-x-2">
+          <button onclick="approve('${a._id}')" class="bg-green-500/70 px-2 py-1 rounded">✔</button>
+          <button onclick="reject('${a._id}')" class="bg-red-500/70 px-2 py-1 rounded">✖</button>
+          <button onclick="deleteAdmission('${a._id}')" class="bg-black/40 px-2 py-1 rounded">🗑</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("total").innerText = data.length;
+  document.getElementById("approved").innerText = approved;
+  document.getElementById("rejected").innerText = rejected;
+  document.getElementById("pending").innerText = pending;
+}
+
+search.oninput = () => {
+  const value = search.value.toLowerCase();
+  const filtered = allData.filter(a =>
+    a.name.toLowerCase().includes(value) ||
+    a.email.toLowerCase().includes(value) ||
+    a.course.toLowerCase().includes(value)
+  );
+  render(filtered);
+};
+
+async function approve(id){
+  await fetch(`http://localhost:5000/api/admissions/approve/${id}`,{
+    method:"PUT",
+    headers:{ Authorization:"Bearer "+token }
+  });
+  load();
+}
+
+async function reject(id){
+  await fetch(`http://localhost:5000/api/admissions/reject/${id}`,{
+    method:"PUT",
+    headers:{ Authorization:"Bearer "+token }
+  });
+  load();
+}
+
+async function deleteAdmission(id){
+  if(!confirm("Delete?")) return;
+
+  await fetch(`http://localhost:5000/api/admissions/${id}`,{
+    method:"DELETE",
+    headers:{ Authorization:"Bearer "+token }
+  });
+  load();
+}
+
+function logout(){
   localStorage.removeItem("token");
-  window.location.href = "login.html";
+  location.href="login.html";
 }
+
+load();
 </script>
 
 </body>

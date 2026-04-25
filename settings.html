@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-900 to-black text-white flex">
+
+<!-- SIDEBAR -->
+<div class="w-64 p-6 bg-white/10 backdrop-blur-xl min-h-screen">
+
+  <h2 class="text-2xl font-bold mb-8">🎓 Admin Panel</h2>
+
+  <a href="dashboard.html" class="block p-2 hover:bg-white/20 rounded">Dashboard</a>
+  <a href="users.html" class="block p-2 hover:bg-white/20 rounded">Users</a>
+  <a href="reports.html" class="block p-2 hover:bg-white/20 rounded">Reports</a>
+  <a href="settings.html" class="block p-2 bg-white/20 rounded">Settings</a>
+
+</div>
+
+<!-- MAIN -->
+<div class="flex-1 flex justify-center items-center">
+
+  <div class="bg-white/10 backdrop-blur-xl p-8 rounded-xl w-96 shadow-lg">
+
+    <h1 class="text-2xl font-bold mb-6 text-center">⚙️ Settings</h1>
+
+    <form id="form" class="space-y-4">
+
+      <input id="name" class="w-full p-2 rounded bg-white/20 outline-none" placeholder="Admin Name">
+
+      <input id="email" class="w-full p-2 rounded bg-white/20 outline-none" placeholder="Email">
+
+      <input id="password" type="password" class="w-full p-2 rounded bg-white/20 outline-none" placeholder="New Password">
+
+      <button class="w-full bg-blue-500 p-2 rounded hover:bg-blue-600">
+        Save Changes
+      </button>
+
+    </form>
+
+    <p id="msg" class="text-center mt-3"></p>
+
+  </div>
+
+</div>
+
+<script>
+lucide.createIcons();
+
+const token = localStorage.getItem("token");
+
+if(!token){
+  alert("Login required");
+  location.href="login.html";
+}
+
+// LOAD CURRENT USER DATA
+async function loadProfile(){
+  const res = await fetch("http://localhost:5000/api/profile", {
+    headers:{ Authorization:"Bearer "+token }
+  });
+
+  const data = await res.json();
+
+  name.value = data.name || "";
+  email.value = data.email || "";
+}
+
+loadProfile();
+
+// SAVE SETTINGS
+form.onsubmit = async (e)=>{
+  e.preventDefault();
+
+  const res = await fetch("http://localhost:5000/api/profile", {
+    method:"PUT",
+    headers:{
+      "Content-Type":"application/json",
+      Authorization:"Bearer "+token
+    },
+    body:JSON.stringify({
+      name:name.value,
+      email:email.value,
+      password:password.value
+    })
+  });
+
+  const data = await res.json();
+  msg.innerText = data.message || "Updated!";
+
+  if(res.ok){
+    password.value = "";
+  }
+};
+</script>
+
+</body>
+</html>
